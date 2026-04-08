@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style> html { zoom: 1.3; } </style>
+  <title>A11y Checker — Demo</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f7;
+      color: #1a1a1a;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Outer section ─────────────────────────────────────────── */
+    .try-section {
+      width: 100%;
+      padding: 80px 24px;
+    }
+
+    .try-container {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .try-container h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .try-container > p {
+      font-size: 16px;
+      color: #888;
+      margin-bottom: 48px;
+      line-height: 1.6;
+    }
+
+    /* ── Two-column layout ─────────────────────────────────────── */
+    .try-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* ── Left: Preview card ────────────────────────────────────── */
+    .try-preview-card {
+      flex: 1;
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: left;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .try-preview-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── Phone mockup ──────────────────────────────────────────── */
+    .phone-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .phone-frame {
+      width: 196px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.07),
+        0 4px 20px rgba(0,0,0,0.12),
+        0 12px 40px rgba(0,0,0,0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ph-status {
+      height: 18px;
+      background: #f7f7f8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 8px;
+      font-weight: 600;
+      color: #888;
+    }
+
+    .ph-nav {
+      height: 40px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f2;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 2px;
+    }
+
+    .ph-more { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #bbb; flex-shrink: 0; }
+
+    .ph-banner {
+      height: 96px;
+      background: linear-gradient(135deg, #e8e8ee 0%, #d8d8e4 100%);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 4px;
+    }
+    .ph-banner-icon { font-size: 16px; opacity: 0.35; }
+    .ph-banner-txt  { font-size: 8px; color: #bbb; }
+
+    .ph-content {
+      padding: 10px 11px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+
+    .ph-product-name { font-size: 12px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.02em; }
+
+    .ph-desc-text { font-size: 10px; color: #c0c0d0; line-height: 1.5; }
+
+    .ph-price { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.02em; margin-top: 1px; }
+
+    .ph-icon-row { display: flex; gap: 5px; margin-top: 1px; }
+    .ph-icon-btn { width: 28px; height: 28px; background: #f5f5f7; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; }
+
+    .ph-cta { margin: 4px 11px 11px; background: #1a1a1a; color: #fff; border-radius: 9px; padding: 10px; text-align: center; font-size: 11px; font-weight: 600; }
+
+    /* ── Design elements with issue overlays ───────────────────── */
+    .des-el { position: relative; }
+
+    .el-ol {
+      position: absolute; inset: -3px; border-radius: 5px;
+      border: 2px dashed transparent; pointer-events: none;
+      opacity: 0; transition: opacity 0.35s ease; z-index: 20;
+    }
+
+    .el-badge {
+      position: absolute; top: -8px; right: -8px;
+      width: 15px; height: 15px; border-radius: 50%;
+      font-size: 7px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.35s ease; z-index: 21;
+    }
+
+    .des-el[data-sev="critical"] .el-ol    { border-color: #e03737; }
+    .des-el[data-sev="critical"] .el-badge { background: #e03737; }
+    .des-el[data-sev="warning"]  .el-ol    { border-color: #c47f00; }
+    .des-el[data-sev="warning"]  .el-badge { background: #c47f00; }
+    .des-el[data-sev="info"]     .el-ol    { border-color: #1d6fd6; }
+    .des-el[data-sev="info"]     .el-badge { background: #1d6fd6; }
+
+    .des-el.issue-visible .el-ol   { opacity: 1; }
+    .des-el.issue-visible .el-badge { opacity: 1; }
+
+    /* Figma-style selection */
+    .des-el.el-selected .el-ol {
+      border: 2px solid #18A0FB !important;
+      border-style: solid !important;
+      opacity: 1 !important;
+    }
+
+    .sel-handle {
+      position: absolute; width: 5px; height: 5px;
+      background: #fff; border: 1.5px solid #18A0FB;
+      border-radius: 1px; z-index: 25; display: none;
+    }
+    .des-el.el-selected .sel-handle { display: block; }
+    .sel-handle.tl { top: -3px; left: -3px; }
+    .sel-handle.tr { top: -3px; right: -3px; }
+    .sel-handle.bl { bottom: -3px; left: -3px; }
+    .sel-handle.br { bottom: -3px; right: -3px; }
+
+    .sel-label {
+      position: absolute; top: -18px; left: 0;
+      background: #18A0FB; color: #fff;
+      font-size: 7px; font-weight: 600;
+      padding: 2px 5px; border-radius: 3px;
+      white-space: nowrap; z-index: 30; display: none;
+    }
+    .des-el.el-selected .sel-label { display: block; }
+
+    /* Scan beam inside phone */
+    .scan-beam {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 5%, #18A0FB 50%, transparent 95%);
+      box-shadow: 0 0 10px 2px rgba(24,160,251,0.5);
+      pointer-events: none; z-index: 50; opacity: 0; top: 0;
+    }
+    .scan-beam.active {
+      animation: beamSweep 1.4s cubic-bezier(0.4,0,0.6,1) forwards;
+      opacity: 1;
+    }
+    @keyframes beamSweep {
+      0%   { top: 0%;   opacity: 1; }
+      80%  { top: 100%; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .scan-tint {
+      position: absolute; inset: 0;
+      background: rgba(24,160,251,0.04);
+      pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 5;
+    }
+    .scan-tint.on { opacity: 1; }
+
+    .des-el.scan-flash { animation: elFlash 0.45s ease-out; }
+    @keyframes elFlash {
+      0%   { filter: brightness(1); }
+      35%  { filter: brightness(1.25) saturate(0.6); }
+      100% { filter: brightness(1); }
+    }
+
+    /* ── Result tags ───────────────────────────────────────────── */
+    .try-text-tags {
+      display: flex; gap: 8px;
+      margin-top: 16px; flex-wrap: wrap;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .try-text-tags.visible { opacity: 1; transform: translateY(0); }
+
+    .dtag {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .dtag-r { background: rgba(224,55,55,0.1);  color: #e03737; }
+    .dtag-a { background: rgba(196,127,0,0.1);  color: #c47f00; }
+    .dtag-b { background: rgba(29,111,214,0.1); color: #1d6fd6; }
+
+    /* ── Reset button ──────────────────────────────────────────── */
+    .try-reset-btn {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.05);
+      border: none; border-radius: 10px;
+      font-family: "Pretendard", sans-serif;
+      font-size: 13px; font-weight: 500; color: #555;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      width: 100%;
+    }
+    .try-reset-btn:hover { background: rgba(0,0,0,0.09); color: #333; }
+
+    /* ── Right: Plugin panel ───────────────────────────────────── */
+    .try-plugin {
+      width: 260px;
+      flex-shrink: 0;
+      background: #2c2c2c;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    .try-plugin-titlebar {
+      display: flex; align-items: center; padding: 10px 14px; gap: 6px;
+    }
+    .tp-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .tp-dot-r { background: #ff5f57; }
+    .tp-dot-y { background: #febc2e; }
+    .tp-dot-g { background: #28c840; }
+    .tp-title { flex: 1; text-align: center; color: #999; font-size: 11px; font-weight: 500; }
+
+    .try-plugin-body { background: #fff; }
+
+    /* Plugin header */
+    .pp-header {
+      padding: 10px 14px; border-bottom: 1px solid #ebebed;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pp-logo {
+      width: 24px; height: 24px; background: #000;
+      border-radius: 6px; overflow: hidden; flex-shrink: 0;
+    }
+    .pp-logo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .pp-name { font-size: 11px; font-weight: 700; letter-spacing: -0.3px; color: #1a1a1a; }
+    .pp-sub  { font-size: 9px; color: #aaa; }
+    .pp-badges { display: flex; gap: 3px; margin-left: auto; }
+    .pp-b { font-size: 8px; font-weight: 600; padding: 2px 5px; border-radius: 20px; }
+    .pp-ba { background: rgba(91,91,214,0.1); color: #5B5BD6; border: 1px solid rgba(91,91,214,0.2); }
+    .pp-bg { background: #f0f0f2; color: #aaa; border: 1px solid #ebebed; }
+
+    /* Scan area */
+    .pp-scan-area {
+      padding: 10px 14px; border-bottom: 1px solid #ebebed;
+      display: flex; flex-direction: column; gap: 7px;
+      background: #f7f7f8;
+    }
+    .pp-scan-btn {
+      width: 100%; padding: 11px 14px;
+      background: #1a1a1a; color: #fff; border: none;
+      border-radius: 10px; font-family: "Pretendard", sans-serif;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: background 0.15s, transform 0.1s; letter-spacing: -0.1px;
+    }
+    .pp-scan-btn:hover   { background: #333; }
+    .pp-scan-btn:active  { transform: scale(0.98); }
+    .pp-scan-btn:disabled { background: #d4d4d8; color: #aaa; cursor: not-allowed; transform: none; }
+
+    .pp-mode-row { display: flex; background: #ebebee; border-radius: 7px; padding: 2px; gap: 2px; }
+    .pp-mode-btn {
+      flex: 1; padding: 5px 6px; border: none; background: transparent;
+      font-family: "Pretendard", sans-serif; font-size: 10px; font-weight: 500; color: #aaa;
+      border-radius: 5px; cursor: pointer; transition: all 0.15s;
+    }
+    .pp-mode-btn.active { background: #fff; color: #1a1a1a; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* States */
+    .pp-state { display: none; flex-direction: column; }
+    .pp-state.visible { display: flex; }
+
+    .pp-idle { padding: 14px; align-items: center; gap: 10px; }
+    .pp-idle-title { font-size: 10px; font-weight: 600; color: #888; text-align: center; }
+    .pp-idle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
+    .pp-idle-item { background: #f7f7f8; border: 1px solid #ebebed; border-radius: 6px; padding: 6px 8px; font-size: 9px; color: #888; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+
+    .pp-loading { align-items: center; justify-content: center; gap: 10px; padding: 32px; }
+    .pp-spinner { width: 26px; height: 26px; border: 2.5px solid #ebebed; border-top-color: #5B5BD6; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pp-loading-txt { font-size: 10px; color: #888; }
+
+    .pp-results { flex-direction: column; }
+
+    .pp-stats {
+      display: flex; padding: 7px 12px;
+      background: #f7f7f8; border-bottom: 1px solid #ebebed;
+      align-items: center; gap: 4px; flex-wrap: wrap;
+    }
+    .pp-chip { display: flex; align-items: center; gap: 3px; padding: 2px 7px 2px 4px; border-radius: 20px; font-size: 9px; font-weight: 600; border: 1px solid transparent; }
+    .pp-chip .cdot { width: 5px; height: 5px; border-radius: 50%; }
+    .pp-chip-r { background: rgba(224,55,55,0.08); color: #e03737; border-color: rgba(224,55,55,0.15); }
+    .pp-chip-a { background: rgba(196,127,0,0.08); color: #c47f00; border-color: rgba(196,127,0,0.15); }
+    .pp-chip-b { background: rgba(29,111,214,0.08); color: #1d6fd6; border-color: rgba(29,111,214,0.15); }
+    .cdot-r { background: #e03737; } .cdot-a { background: #c47f00; } .cdot-b { background: #1d6fd6; }
+    .pp-total { margin-left: auto; font-size: 9px; color: #bbb; font-family: monospace; }
+
+    .pp-issue-list { max-height: 220px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+    .pp-issue-list::-webkit-scrollbar { width: 3px; }
+    .pp-issue-list::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
+
+    .pp-sec-hdr { padding: 5px 12px 3px; font-size: 8px; font-weight: 600; letter-spacing: 0.8px; color: #bbb; text-transform: uppercase; background: #f7f7f8; border-bottom: 1px solid #ebebed; position: sticky; top: 0; z-index: 2; }
+
+    .pp-issue {
+      padding: 8px 12px 8px 14px; border-bottom: 1px solid #ebebed;
+      position: relative; cursor: pointer; transition: background 0.1s;
+    }
+    .pp-issue:hover { background: #f9f9fa; }
+    .pp-issue.active-issue { background: rgba(91,91,214,0.04); }
+    .pp-issue::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; }
+    .pp-issue.sev-critical::before { background: #e03737; }
+    .pp-issue.sev-warning::before  { background: #c47f00; }
+    .pp-issue.sev-info::before     { background: #1d6fd6; }
+
+    .pp-issue-top { display: flex; align-items: center; gap: 3px; margin-bottom: 2px; }
+    .pp-ibadge { font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 3px; letter-spacing: 0.4px; text-transform: uppercase; font-family: monospace; }
+    .pp-ibadge-critical { background: rgba(224,55,55,0.1); color: #e03737; }
+    .pp-ibadge-warning  { background: rgba(196,127,0,0.1);  color: #c47f00; }
+    .pp-ibadge-info     { background: rgba(29,111,214,0.1); color: #1d6fd6; }
+    .pp-itype { font-size: 9px; color: #888; font-weight: 500; }
+    .pp-irule { margin-left: auto; font-size: 8px; color: #bbb; background: #f0f0f2; padding: 1px 4px; border-radius: 3px; font-family: monospace; flex-shrink: 0; }
+    .pp-iname { font-size: 10px; font-weight: 600; color: #1a1a1a; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pp-idetail { font-size: 9px; color: #888; line-height: 1.4; }
+
+    .pp-color-row { display: flex; align-items: center; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+    .pp-color-pair { display: flex; align-items: center; gap: 3px; background: #f0f0f2; border: 1px solid #e8e8ed; border-radius: 5px; padding: 3px 6px; }
+    .pp-swatch { width: 10px; height: 10px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.06); flex-shrink: 0; }
+    .pp-shex { font-size: 9px; color: #888; font-family: monospace; }
+    .pp-sep  { font-size: 8px; color: #ccc; }
+    .pp-sugg-pill { display: flex; align-items: center; gap: 3px; background: rgba(12,175,116,0.08); border: 1px solid rgba(12,175,116,0.2); border-radius: 5px; padding: 3px 6px; }
+    .pp-sugg-lbl { font-size: 8px; font-weight: 600; color: #0caf74; }
+    .pp-sugg-hex { font-size: 9px; color: #0caf74; font-family: monospace; }
+    .pp-copy-btn { background: none; border: none; cursor: pointer; font-size: 10px; color: #bbb; padding: 0 1px; transition: color 0.15s; }
+    .pp-copy-btn:hover { color: #0caf74; }
+
+    .pp-tip { display: none; margin-top: 5px; padding: 5px 7px; background: #f7f7f8; border-radius: 5px; font-size: 9px; color: #666; line-height: 1.5; }
+    .pp-issue.pp-expanded .pp-tip { display: block; }
+    .pp-expand-cue { font-size: 8px; color: #bbb; margin-top: 3px; display: flex; align-items: center; gap: 2px; }
+
+    /* Plugin footer */
+    .pp-footer {
+      padding: 8px 14px; border-top: 1px solid #ebebed;
+      display: flex; align-items: center; background: #f7f7f8;
+    }
+    .pp-footer-info { font-size: 8px; font-family: monospace; color: #bbb; flex: 1; }
+    .pp-footer-btns { display: flex; gap: 4px; }
+    .pp-btn-sm {
+      font-size: 9px; font-weight: 500; background: #fff; border: 1px solid #d4d4dc; color: #888;
+      padding: 3px 8px; border-radius: 5px; cursor: pointer; font-family: "Pretendard", sans-serif; transition: all 0.15s;
+    }
+    .pp-btn-sm:hover { border-color: #aaa; color: #555; }
+    .pp-btn-export { border-color: rgba(29,111,214,0.3); color: #1d6fd6; background: rgba(29,111,214,0.05); display: none; }
+    .pp-btn-export.visible { display: flex; align-items: center; gap: 3px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #1a1a1a; color: #fff;
+      font-size: 13px; font-weight: 500;
+      padding: 10px 20px; border-radius: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s; z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .try-layout { flex-direction: column-reverse; }
+      .try-plugin { width: 100%; }
+      .try-container h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="try-section">
+    <div class="try-container">
+      <h1>A11y Checker</h1>
+      <p>Figma 디자인의 접근성 이슈를 자동으로 감지하는 플러그인</p>
+
+      <div class="try-layout">
+
+        <!-- ── Left: Preview card ────────────────────────────── -->
+        <div class="try-preview-card">
+          <div class="try-preview-label">
+            <span>Preview</span>
+          </div>
+
+          <!-- Phone mockup -->
+          <div class="phone-wrap">
+            <div class="phone-frame" id="phoneFrame">
+              <div class="scan-tint" id="scanTint"></div>
+              <div class="scan-beam" id="scanBeam"></div>
+
+              <!-- Status bar -->
+              <div class="ph-status">
+                <span>9:41</span>
+                <div style="display:flex;gap:4px;align-items:center"><span>●●●</span><span style="font-size:7px">▲</span><span>■</span></div>
+              </div>
+
+              <!-- Nav -->
+              <div class="ph-nav">
+                <div class="des-el" id="des-back" data-sev="info">
+                  <div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#aaa;">←</div>
+                  <div class="el-ol"></div>
+                  <div class="el-badge">5</div>
+                  <div class="sel-label">뒤로가기</div>
+                  <div class="sel-handle tl"></div><div class="sel-handle tr"></div>
+                  <div class="sel-handle bl"></div><div class="sel-handle br"></div>
+                </div>
+                <div class="des-el" style="flex:1;text-align:center;" id="des-title" data-sev="critical">
+                  <div style="font-size:11px;font-weight:600;color:#aaaaaa;text-align:center;">상품 상세</div>
+                  <div class="el-ol"></div>
+                  <div class="el-badge">1</div>
+                  <div class="sel-label">상품 상세 (T)</div>
+                  <div class="sel-handle tl"></div><div class="sel-handle tr"></div>
+                  <div class="sel-handle bl"></div><div class="sel-handle br"></div>
+                </div>
+                <div class="ph-more">⋯</div>
+              </div>
+
+              <!-- Banner -->
+              <div class="des-el" id="des-banner" data-sev="warning">
+                <div class="ph-banner">
+                  <div class="ph-banner-icon">🖼</div>
+                  <div class="ph-banner-txt">배너 이미지</div>
+                </div>
+                <div class="el-ol"></div>
+                <div class="el-badge">3</div>
+                <div class="sel-label">배너 이미지</div>
+                <div class="sel-handle tl"></div><div class="sel-handle tr"></div>
+                <div class="sel-handle bl"></div><div class="sel-handle br"></div>
+              </div>
+
+              <!-- Content -->
+              <div class="ph-content">
+                <div class="ph-product-name">고급 캐시미어 니트</div>
+                <div class="des-el" id="des-desc" data-sev="critical">
+                  <div class="ph-desc-text">따뜻하고 편안한 겨울 아이템으로 최고의 선택입니다.</div>
+                  <div class="el-ol"></div>
+                  <div class="el-badge">2</div>
+                  <div class="sel-label">설명 텍스트 (T)</div>
+                  <div class="sel-handle tl"></div><div class="sel-handle tr"></div>
+                  <div class="sel-handle bl"></div><div class="sel-handle br"></div>
+                </div>
+                <div class="ph-price">₩ 89,000</div>
+                <div class="des-el" id="des-icons" data-sev="warning">
+                  <div class="ph-icon-row">
+                    <div class="ph-icon-btn">♡</div>
+                    <div class="ph-icon-btn">↗</div>
+                  </div>
+                  <div class="el-ol"></div>
+                  <div class="el-badge">4</div>
+                  <div class="sel-label">액션 버튼</div>
+                  <div class="sel-handle tl"></div><div class="sel-handle tr"></div>
+                  <div class="sel-handle bl"></div><div class="sel-handle br"></div>
+                </div>
+              </div>
+
+              <div class="ph-cta">장바구니 담기</div>
+            </div>
+          </div>
+
+          <!-- Result tags -->
+          <div class="try-text-tags" id="tryTags">
+            <span class="dtag dtag-r">Critical 2건</span>
+            <span class="dtag dtag-a">Warning 2건</span>
+            <span class="dtag dtag-b">Info 1건</span>
+          </div>
+
+          <!-- Reset button -->
+          <button class="try-reset-btn" id="resetBtn" onclick="doReset()">초기화</button>
+        </div>
+
+        <!-- ── Right: Plugin panel ────────────────────────────── -->
+        <div class="try-plugin">
+          <div class="try-plugin-titlebar">
+            <div class="tp-dot tp-dot-r"></div>
+            <div class="tp-dot tp-dot-y"></div>
+            <div class="tp-dot tp-dot-g"></div>
+            <span class="tp-title">A11y Checker</span>
+            <div style="width:36px"></div>
+          </div>
+
+          <div class="try-plugin-body">
+            <!-- Plugin header -->
+            <div class="pp-header">
+              <div class="pp-logo"><img src="icon.png" alt="A11y Checker"></div>
+              <div>
+                <div class="pp-name">A11y Checker</div>
+                <div class="pp-sub">Accessibility Inspector</div>
+              </div>
+              <div class="pp-badges">
+                <span class="pp-b pp-ba">WCAG 2.1</span>
+                <span class="pp-b pp-bg">KWCAG</span>
+              </div>
+            </div>
+
+            <!-- Scan area -->
+            <div class="pp-scan-area">
+              <button class="pp-scan-btn" id="scanBtn" onclick="doScan()">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M10.5 10.5L14 14M6.5 11.5C3.74 11.5 1.5 9.26 1.5 6.5S3.74 1.5 6.5 1.5 11.5 3.74 11.5 6.5 9.26 11.5 6.5 11.5Z" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                접근성 검사 실행
+              </button>
+              <div class="pp-mode-row">
+                <button class="pp-mode-btn active" id="modeA">선택 레이어</button>
+                <button class="pp-mode-btn" id="modeB">전체 페이지</button>
+              </div>
+            </div>
+
+            <!-- States -->
+            <!-- Idle -->
+            <div class="pp-state pp-idle visible" id="stIdle">
+              <div class="pp-idle-title">WCAG 2.1 기준으로 분석합니다</div>
+              <div class="pp-idle-grid">
+                <div class="pp-idle-item">🎨 컬러 대비</div>
+                <div class="pp-idle-item">👆 터치 영역</div>
+                <div class="pp-idle-item">🖼 대체 텍스트</div>
+                <div class="pp-idle-item">🔤 아이콘 버튼</div>
+                <div class="pp-idle-item">⌨️ 포커스</div>
+                <div class="pp-idle-item">✏️ 빈 텍스트</div>
+              </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="pp-state pp-loading" id="stLoading">
+              <div class="pp-spinner"></div>
+              <div class="pp-loading-txt">접근성 분석 중...</div>
+            </div>
+
+            <!-- Results -->
+            <div class="pp-state pp-results" id="stResults">
+              <div class="pp-stats">
+                <div class="pp-chip pp-chip-r"><div class="cdot cdot-r"></div>2 Critical</div>
+                <div class="pp-chip pp-chip-a"><div class="cdot cdot-a"></div>2 Warning</div>
+                <div class="pp-chip pp-chip-b"><div class="cdot cdot-b"></div>1 Info</div>
+                <span class="pp-total">총 5건</span>
+              </div>
+              <div class="pp-issue-list" id="issueList"></div>
+            </div>
+
+            <!-- Footer -->
+            <div class="pp-footer">
+              <span class="pp-footer-info">WCAG 2.1 · KWCAG 2.2</span>
+              <div class="pp-footer-btns">
+                <button class="pp-btn-sm pp-btn-export visible" id="exportBtn" onclick="doExport()" style="display:none;">📋 내보내기</button>
+                <button class="pp-btn-sm" id="ppResetBtn" onclick="doReset()">초기화</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.try-layout -->
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Issue data ──────────────────────────────────────────────
+    const ISSUES = [
+      { desId:'des-title',  sev:'critical', badge:'Critical', type:'🎨 컬러 대비', rule:'WCAG 1.4.3', name:'상품 상세 (타이틀)', detail:'대비율 2.3:1 · AA 기준(4.5:1) 미달', fg:'#AAAAAA', bg:'#FFFFFF', sugg:'#767676', tip:null },
+      { desId:'des-desc',   sev:'critical', badge:'Critical', type:'🎨 컬러 대비', rule:'WCAG 1.4.3', name:'설명 텍스트', detail:'대비율 1.9:1 · AA 기준(4.5:1) 미달', fg:'#C0C0D0', bg:'#FFFFFF', sugg:'#5C5C70', tip:null },
+      { desId:'des-banner', sev:'warning',  badge:'Warning',  type:'🖼 대체 텍스트', rule:'WCAG 1.1.1', name:'배너 이미지', detail:'alt 텍스트 없음', fg:null, bg:null, sugg:null, tip:"레이어 이름을 'alt_배너 설명' 또는 'deco_배너'로 변경해주세요." },
+      { desId:'des-icons',  sev:'warning',  badge:'Warning',  type:'👆 터치 영역', rule:'WCAG 2.5.5', name:'액션 버튼 (group)', detail:'28×28px · 최소 44×44px 필요', fg:null, bg:null, sugg:null, tip:'패딩을 추가하거나 컴포넌트 크기를 44×44px 이상으로 늘려주세요.' },
+      { desId:'des-back',   sev:'info',     badge:'Info',     type:'🔤 아이콘 버튼', rule:'WCAG 1.1.1', name:'뒤로가기 (component)', detail:'텍스트 없는 버튼 · 레이블 누락', fg:null, bg:null, sugg:null, tip:"레이어 이름에 '뒤로가기 버튼'을 포함해주세요." }
+    ];
+
+    // ── State ───────────────────────────────────────────────────
+    let scanning = false, hasResults = false, activeIdx = -1;
+
+    const scanBtn   = document.getElementById('scanBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const resetBtn  = document.getElementById('resetBtn');
+    const issueList = document.getElementById('issueList');
+    const scanBeam  = document.getElementById('scanBeam');
+    const scanTint  = document.getElementById('scanTint');
+
+    function setState(s) {
+      ['stIdle','stLoading','stResults'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.toggle('visible', id === s);
+      });
+    }
+
+    // ── Scan ────────────────────────────────────────────────────
+    function doScan() {
+      if (scanning) return;
+      scanning = true;
+      scanBtn.disabled = true;
+      setState('stLoading');
+
+      // Tint on
+      scanTint.classList.add('on');
+
+      // Beam
+      setTimeout(() => {
+        scanBeam.classList.add('active');
+        flashElements();
+      }, 200);
+
+      // Done
+      setTimeout(() => {
+        scanTint.classList.remove('on');
+        scanBeam.classList.remove('active');
+
+        showOverlays();
+        renderIssues();
+        setState('stResults');
+        hasResults = true;
+        scanning = false;
+        scanBtn.disabled = false;
+
+        // Tags + reset
+        setTimeout(() => {
+          document.getElementById('tryTags').classList.add('visible');
+          resetBtn.style.display = '';
+          exportBtn.style.display = 'flex';
+        }, 500);
+
+        // Reset beam
+        setTimeout(() => {
+          scanBeam.style.opacity = '';
+          scanBeam.classList.remove('active');
+        }, 300);
+      }, 1800);
+    }
+
+    // ── Element flashes during scan ─────────────────────────────
+    const FLASH_DELAYS = { 'des-back':180, 'des-title':260, 'des-banner':560, 'des-desc':900, 'des-icons':1100 };
+
+    function flashElements() {
+      Object.entries(FLASH_DELAYS).forEach(([id, delay]) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add('scan-flash');
+            setTimeout(() => el.classList.remove('scan-flash'), 450);
+          }
+        }, delay);
+      });
+    }
+
+    // ── Show overlays ───────────────────────────────────────────
+    function showOverlays() {
+      ISSUES.forEach((iss, i) => {
+        const el = document.getElementById(iss.desId);
+        if (el) setTimeout(() => el.classList.add('issue-visible'), i * 140 + 80);
+      });
+    }
+
+    function hideOverlays() {
+      ISSUES.forEach(iss => {
+        const el = document.getElementById(iss.desId);
+        if (el) el.classList.remove('issue-visible', 'el-selected');
+      });
+    }
+
+    // ── Select element ──────────────────────────────────────────
+    function selectEl(idx) {
+      ISSUES.forEach(iss => {
+        const el = document.getElementById(iss.desId);
+        if (el) el.classList.remove('el-selected');
+      });
+      document.querySelectorAll('.pp-issue').forEach(c => c.classList.remove('active-issue'));
+
+      if (idx === activeIdx) { activeIdx = -1; return; }
+      activeIdx = idx;
+
+      const desEl = document.getElementById(ISSUES[idx].desId);
+      if (desEl) desEl.classList.add('el-selected');
+
+      const card = document.querySelector(`.pp-issue[data-idx="${idx}"]`);
+      if (card) card.classList.add('active-issue');
+    }
+
+    // ── Render issues ───────────────────────────────────────────
+    function renderIssues() {
+      issueList.innerHTML = '';
+      const groups = [
+        { key:'critical', label:'Critical' },
+        { key:'warning',  label:'Warning' },
+        { key:'info',     label:'Info' }
+      ];
+
+      groups.forEach(({ key, label }) => {
+        const group = ISSUES.map((iss, i) => ({...iss, idx:i})).filter(iss => iss.sev === key);
+        if (!group.length) return;
+
+        const hdr = document.createElement('div');
+        hdr.className = 'pp-sec-hdr';
+        hdr.textContent = label;
+        issueList.appendChild(hdr);
+
+        group.forEach(iss => {
+          const card = document.createElement('div');
+          card.className = `pp-issue sev-${iss.sev}`;
+          card.dataset.idx = iss.idx;
+
+          let colorHTML = '';
+          if (iss.fg) {
+            colorHTML = `
+              <div class="pp-color-row">
+                <div class="pp-color-pair">
+                  <div class="pp-swatch" style="background:${iss.fg}"></div>
+                  <span class="pp-shex">${iss.fg}</span>
+                  <span class="pp-sep">→</span>
+                  <div class="pp-swatch" style="background:${iss.bg}"></div>
+                  <span class="pp-shex">${iss.bg}</span>
+                </div>
+                <div class="pp-sugg-pill">
+                  <span class="pp-sugg-lbl">추천</span>
+                  <div class="pp-swatch" style="background:${iss.sugg}"></div>
+                  <span class="pp-sugg-hex">${iss.sugg}</span>
+                  <button class="pp-copy-btn" data-hex="${iss.sugg}">⎘</button>
+                </div>
+              </div>`;
+          }
+
+          card.innerHTML = `
+            <div class="pp-issue-top">
+              <span class="pp-ibadge pp-ibadge-${iss.sev}">${iss.badge}</span>
+              <span class="pp-itype">${iss.type}</span>
+              <span class="pp-irule">${iss.rule}</span>
+            </div>
+            <div class="pp-iname">${iss.name}</div>
+            <div class="pp-idetail">${iss.detail}</div>
+            ${colorHTML}
+            ${iss.tip ? `<div class="pp-tip">💡 ${iss.tip}</div><div class="pp-expand-cue"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> 개선 방안 보기</div>` : ''}
+          `;
+
+          card.addEventListener('click', e => {
+            if (e.target.classList.contains('pp-copy-btn')) return;
+            selectEl(iss.idx);
+            if (iss.tip) {
+              card.classList.toggle('pp-expanded');
+              const cue = card.querySelector('.pp-expand-cue');
+              if (cue) cue.innerHTML = card.classList.contains('pp-expanded')
+                ? `<svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 6.5L5 3.5L8 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> 접기`
+                : `<svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> 개선 방안 보기`;
+            }
+          });
+
+          card.querySelectorAll('.pp-copy-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.stopPropagation();
+              copyText(btn.dataset.hex);
+              btn.textContent = '✓';
+              setTimeout(() => { btn.textContent = '⎘'; }, 1500);
+              showToast(`${btn.dataset.hex} 복사됨`);
+            });
+          });
+
+          issueList.appendChild(card);
+        });
+      });
+    }
+
+    // ── Mode toggle ─────────────────────────────────────────────
+    document.getElementById('modeA').addEventListener('click', () => {
+      document.getElementById('modeA').classList.add('active');
+      document.getElementById('modeB').classList.remove('active');
+    });
+    document.getElementById('modeB').addEventListener('click', () => {
+      document.getElementById('modeB').classList.add('active');
+      document.getElementById('modeA').classList.remove('active');
+    });
+
+    // ── Reset ───────────────────────────────────────────────────
+    function doReset() {
+      scanning = false; hasResults = false; activeIdx = -1;
+      scanBtn.disabled = false;
+      hideOverlays();
+      issueList.innerHTML = '';
+      setState('stIdle');
+      document.getElementById('tryTags').classList.remove('visible');
+      resetBtn.style.display = 'none';
+      exportBtn.style.display = 'none';
+      scanBeam.classList.remove('active');
+      scanTint.classList.remove('on');
+    }
+
+    // ── Export ──────────────────────────────────────────────────
+    function doExport() {
+      const date = new Date().toLocaleDateString('ko-KR');
+      let md = `# A11y Checker 리포트\n> ${date} — WCAG 2.1 / KWCAG 2.2\n\n`;
+      md += `## 요약\n| 등급 | 건수 |\n|---|---|\n| 🔴 Critical | 2 |\n| 🟡 Warning | 2 |\n| 🔵 Info | 1 |\n| **합계** | **5** |\n\n## 이슈 목록\n\n`;
+      ISSUES.forEach((iss, i) => {
+        md += `**${i+1}. [${iss.rule}] ${iss.type} — \`${iss.name}\`**\n- ${iss.detail}\n`;
+        if (iss.fg) md += `- 전경: \`${iss.fg}\` / 배경: \`${iss.bg}\` → 추천: \`${iss.sugg}\`\n`;
+        if (iss.tip) md += `- 개선 방안: ${iss.tip}\n`;
+        md += '\n';
+      });
+      copyText(md);
+      showToast('📋 마크다운 리포트 복사 완료!');
+    }
+
+    // ── Utils ───────────────────────────────────────────────────
+    function copyText(t) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      } catch(e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // Init
+    doReset();
+  </script>
+
+</body>
+</html>
