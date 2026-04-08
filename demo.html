@@ -274,6 +274,8 @@
       border-radius: 12px;
       box-shadow: 0 12px 40px rgba(0,0,0,0.12);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .try-plugin-titlebar {
@@ -285,7 +287,7 @@
     .tp-dot-g { background: #28c840; }
     .tp-title { flex: 1; text-align: center; color: #999; font-size: 11px; font-weight: 500; }
 
-    .try-plugin-body { background: #fff; }
+    .try-plugin-body { background: #fff; display: flex; flex-direction: column; flex: 1; }
 
     /* Plugin header */
     .pp-header {
@@ -331,10 +333,10 @@
     .pp-mode-btn.active { background: #fff; color: #1a1a1a; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
     /* States */
-    .pp-state { display: none; flex-direction: column; }
+    .pp-state { display: none; flex-direction: column; flex: 1; }
     .pp-state.visible { display: flex; }
 
-    .pp-idle { padding: 14px; align-items: center; gap: 10px; }
+    .pp-idle { padding: 14px; align-items: center; justify-content: center; gap: 10px; flex: 1; }
     .pp-idle-title { font-size: 10px; font-weight: 600; color: #888; text-align: center; }
     .pp-idle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
     .pp-idle-item { background: #f7f7f8; border: 1px solid #ebebed; border-radius: 6px; padding: 6px 8px; font-size: 9px; color: #888; font-weight: 500; display: flex; align-items: center; gap: 4px; }
