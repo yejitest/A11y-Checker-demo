@@ -53,7 +53,7 @@
     .try-layout {
       display: flex;
       gap: 24px;
-      align-items: stretch;
+      align-items: flex-start;
     }
 
     /* ── Left: Preview card ────────────────────────────────────── */
@@ -880,6 +880,21 @@
 
     // Init
     doReset();
+
+    // 높이 고정: 초기 렌더 후 프리뷰 카드 기준으로 양쪽 모두 잠금
+    window.addEventListener('DOMContentLoaded', lockHeights);
+    window.addEventListener('load', lockHeights);
+
+    function lockHeights() {
+      const card   = document.querySelector('.try-preview-card');
+      const plugin = document.querySelector('.try-plugin');
+      if (!card || !plugin) return;
+      const h = card.offsetHeight;
+      if (!h) return;
+      card.style.height   = h + 'px';
+      card.style.overflow = 'hidden';
+      plugin.style.height = h + 'px';
+    }
   </script>
 
 </body>
