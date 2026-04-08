@@ -333,10 +333,10 @@
     .pp-mode-btn.active { background: #fff; color: #1a1a1a; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
     /* States */
-    .pp-state { display: none; flex-direction: column; flex: 1; }
+    .pp-state { display: none; flex-direction: column; }
     .pp-state.visible { display: flex; }
 
-    .pp-idle { padding: 14px; align-items: center; justify-content: center; gap: 10px; flex: 1; }
+    .pp-idle { padding: 14px; align-items: center; justify-content: center; gap: 10px; }
     .pp-idle-title { font-size: 10px; font-weight: 600; color: #888; text-align: center; }
     .pp-idle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
     .pp-idle-item { background: #f7f7f8; border: 1px solid #ebebed; border-radius: 6px; padding: 6px 8px; font-size: 9px; color: #888; font-weight: 500; display: flex; align-items: center; gap: 4px; }
@@ -346,7 +346,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .pp-loading-txt { font-size: 10px; color: #888; }
 
-    .pp-results { flex-direction: column; flex: 1; min-height: 0; }
+    .pp-results { flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 
     .pp-stats {
       display: flex; padding: 7px 12px;
