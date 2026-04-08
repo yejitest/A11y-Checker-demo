@@ -346,7 +346,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .pp-loading-txt { font-size: 10px; color: #888; }
 
-    .pp-results { flex-direction: column; }
+    .pp-results { flex-direction: column; flex: 1; min-height: 0; }
 
     .pp-stats {
       display: flex; padding: 7px 12px;
@@ -361,7 +361,7 @@
     .cdot-r { background: #e03737; } .cdot-a { background: #c47f00; } .cdot-b { background: #1d6fd6; }
     .pp-total { margin-left: auto; font-size: 9px; color: #bbb; font-family: monospace; }
 
-    .pp-issue-list { max-height: 160px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+    .pp-issue-list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
     .pp-issue-list::-webkit-scrollbar { width: 3px; }
     .pp-issue-list::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
 
